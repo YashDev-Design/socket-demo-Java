@@ -37,6 +37,9 @@ public class DateClient {
                     Socket socket = new Socket();
                     socket.connect(new InetSocketAddress(host, 6013), 50);
 
+                    PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                    out.println("DISCOVERY");
+
                     BufferedReader in = new BufferedReader(
                             new InputStreamReader(socket.getInputStream()));
 
@@ -66,6 +69,10 @@ public class DateClient {
             String selectedIP = discoveredServers.get(choice).split(" ")[0];
 
             Socket sock = new Socket(selectedIP, 6013);
+
+            PrintWriter out = new PrintWriter(sock.getOutputStream(), true);
+            out.println("CLIENT");
+
             BufferedReader bin = new BufferedReader(
                     new InputStreamReader(sock.getInputStream()));
 

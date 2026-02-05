@@ -31,12 +31,26 @@ public class DateServer {
 
             while (true) {
                 Socket client = sock.accept();
-                System.out.println("Client connected from: " + client.getInetAddress());
 
+                BufferedReader in = new BufferedReader(
+                        new InputStreamReader(client.getInputStream()));
                 PrintWriter pout = new PrintWriter(client.getOutputStream(), true);
-                pout.println("SERVER_NAME:Javeed's Socket Server");
-                pout.println("SERVER_WIFI_IP:" + serverIP);
-                pout.println("DATE:" + new java.util.Date());
+
+                // First message tells server what kind of connection this is
+                String type = in.readLine();
+
+                if ("DISCOVERY".equals(type)) {
+                    // Discovery scan — do not log as real client
+                    pout.println("SERVER_NAME:Javeed's Socket Server");
+                    pout.println("SERVER_WIFI_IP:" + serverIP);
+                } else if ("CLIENT".equals(type)) {
+                    // Real user connection
+                    System.out.println("Real client connected from: " + client.getInetAddress());
+
+                    pout.println("SERVER_NAME:Javeed's Socket Server");
+                    pout.println("SERVER_WIFI_IP:" + serverIP);
+                    pout.println("DATE:" + new java.util.Date());
+                }
 
                 client.close();
             }

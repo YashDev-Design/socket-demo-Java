@@ -34,6 +34,7 @@ To demonstrate:
 | Server Identification | Server sends its name and WiFi IP |
 | Interactive Selection | Client selects server from discovered list |
 | Cross-Network Test | Works when switching WiFi networks |
+| Connection-Type Handshake | Differentiates discovery scans from real client connections |
 
 ---
 
@@ -187,47 +188,43 @@ Client scans subnet → Finds server → User selects server
 
 ---
 
-## 🏫 Academic Relevance
+## 🤝 Connection Handshake Protocol (Latest Update)
 
-This project demonstrates advanced OS and networking concepts:
+To improve how the server logs connections, an **application-layer handshake** was added between the client and server.
 
-- Socket creation  
-- TCP communication  
-- Network interface enumeration  
-- Loopback vs LAN addressing  
-- Subnet scanning  
-- Service identification  
-- Client-server architecture  
+### 🔍 Discovery Phase
+When the client scans the network to find servers, it sends:
 
----
-
-## 🧑‍💻 Author
-
-**Yash (Javeed)**  
-Master’s in Computer Science  
-Operating Systems — Socket Programming Assignment
-
----
-
-## 📌 Conclusion
-
-This project proves:
-
-✔ Communication over real WiFi networks  
-✔ Dynamic IP detection  
-✔ Server discovery in LAN  
-✔ TCP socket communication  
-✔ Successful execution across multiple networks  
-
----
-
-## 🐙 GitHub Upload Commands
-
-```bash
-git init
-git add .
-git commit -m "Advanced Java Socket Client-Server with WiFi Detection"
-git branch -M main
-git remote add origin https://github.com/yourusername/socket-demo.git
-git push -u origin main
 ```
+DISCOVERY
+```
+
+The server recognizes this as a **scan request** and:
+- Sends back server name and IP
+- **Does NOT log** it as a real client connection
+
+### 👤 Real Client Connection
+After the user selects a server, the client sends:
+
+```
+CLIENT
+```
+
+The server recognizes this as an actual user and:
+- Logs the connection:
+  ```
+  Real client connected from: <client-ip>
+  ```
+- Sends server name, WiFi IP, and date
+
+### 🎯 Why This Was Needed
+
+Earlier, the server printed “Client connected” even during scanning because every scan is still a TCP connection.  
+By adding this handshake message, the server can now distinguish:
+
+| Type | Purpose |
+|------|--------|
+| DISCOVERY | Temporary scan connection |
+| CLIENT | Actual user communication |
+
+This design mimics how real-world protocols identify request types over TCP.
