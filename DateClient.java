@@ -106,7 +106,3 @@ public class DateClient {
         }
     }
 }
-
-
-
-//i even want a feature like if server or client without closing the terminal by mistake type end and messaging ends then i want a message to ask me like you want to reconnect to server back and same message for server side you wish to recconnect with client back and when selected yes then on client side it should repeat the process scanning for servers availabe on same ip as before first time and on server side it should show waiting for client to get connecting back 
