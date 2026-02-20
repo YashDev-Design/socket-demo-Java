@@ -3,7 +3,9 @@ import java.net.*;
 import java.util.*;
 
 public class DateClient {
+
     public static void main(String[] args) throws Exception {
+
         String clientIP = InetAddress.getLocalHost().getHostAddress();
 
         System.out.println("==================================");
@@ -24,8 +26,9 @@ public class DateClient {
 
                 BufferedReader in = new BufferedReader(
                         new InputStreamReader(socket.getInputStream()));
-                String name = in.readLine();
-                if (name != null && name.startsWith("SERVER_NAME")) {
+
+                String response = in.readLine();
+                if (response != null && response.startsWith("SERVER_NAME")) {
                     servers.add(host);
                 }
             } catch (Exception ignored) {}
@@ -38,68 +41,67 @@ public class DateClient {
 
         System.out.println("Available Servers:");
         for (int i = 0; i < servers.size(); i++) {
-            System.out.println((i + 1) + ". " + servers.get(i) + " - Javeed's Socket Server");
+            System.out.println((i + 1) + ". " + servers.get(i));
         }
 
-        Scanner sc = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in);
         System.out.print("Select server number to connect: ");
-        int choice = sc.nextInt();
-        sc.nextLine();
+        int choice = scanner.nextInt();
+        scanner.nextLine();
 
         String serverIP = servers.get(choice - 1);
         Socket socket = new Socket(serverIP, 6013);
 
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-        out.println("CLIENT");
-
         BufferedReader in = new BufferedReader(
                 new InputStreamReader(socket.getInputStream()));
-        BufferedReader keyboard = new BufferedReader(
-                new InputStreamReader(System.in));
 
-        System.out.println("\n==================================");
-        System.out.println("Connection Established Over WiFi");
-        System.out.println("Connected to Server: Javeed's Socket Server");
-        System.out.println("Server WiFi IP: " + serverIP);
-        System.out.println("Client WiFi IP: " + clientIP);
-        System.out.println("Chat started. Type messages (END to stop)");
+        out.println("CLIENT");
+
+        String response = in.readLine();
+
+        if ("ENTER_NAME".equals(response)) {
+            while (true) {
+                System.out.print("Enter your name: ");
+                String name = scanner.nextLine();
+                out.println(name);
+
+                String serverReply = in.readLine();
+
+                if ("NAME_EXISTS".equals(serverReply)) {
+                    System.out.println("Name already taken. Try another.");
+                }
+                else if ("NAME_ACCEPTED".equals(serverReply)) {
+                    System.out.println("Name accepted. You joined the chat.");
+                    break;
+                }
+            }
+        }
+
+        System.out.println("==================================");
+        System.out.println("Connected to Server: " + serverIP);
+        System.out.println("Chat started. Type messages (END to exit)");
         System.out.println("==================================");
 
-        // THREAD TO RECEIVE
+        // Thread to receive messages
         Thread receiveThread = new Thread(() -> {
             try {
                 String msg;
                 while ((msg = in.readLine()) != null) {
-                    if (msg.equalsIgnoreCase("END")) {
-                        System.out.println("Server ended the chat.");
-                        socket.close();
-                        break;
-                    }
-                    System.out.println("Server: " + msg);
+                    System.out.println(msg);
                 }
-                // If loop exits normally
-                System.out.println("Server disconnected. Reconnect to " + serverIP + " to chat again.");
-                socket.close();
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                System.out.println("Disconnected from server.");
+            }
         });
         receiveThread.start();
 
-        // SEND LOOP
-        String clientMsg;
+        // Sending loop
         while (true) {
-            if (socket.isClosed()) break;
+            String message = scanner.nextLine();
+            out.println(message);
 
-            clientMsg = keyboard.readLine();
-            if (clientMsg == null) break;
-
-            try {
-                out.println(clientMsg);
-            } catch (Exception e) {
-                System.out.println("Server disconnected. Cannot send messages.");
-                break;
-            }
-
-            if (clientMsg.equalsIgnoreCase("END")) {
+            if ("END".equalsIgnoreCase(message)) {
                 socket.close();
                 break;
             }
