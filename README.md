@@ -228,3 +228,129 @@ By adding this handshake message, the server can now distinguish:
 | CLIENT | Actual user communication |
 
 This design mimics how real-world protocols identify request types over TCP.
+
+---
+
+## 🆕 Multi‑Client Chat Upgrade (Latest Version)
+
+The server was upgraded from a single-client model to a **multi-client concurrent architecture**.
+
+### 🚀 What Was Added
+
+| Feature | Description |
+|----------|------------|
+| Multi-Client Support | Multiple clients can connect simultaneously |
+| Thread-Based Handling | Each client runs in its own `ClientHandler` thread |
+| Unique Username Enforcement | Server asks for client name and prevents duplicates |
+| Concurrent Client Storage | Active clients stored in `ConcurrentHashMap` |
+| Connection List Tracking | Server maintains live list of connected clients |
+| Clean Disconnect Handling | Server detects client termination and removes from list |
+| Privacy Mode | Messages are NOT broadcast to other clients |
+
+---
+
+## 🧵 Architecture Change
+
+### Before
+- Server handled only one client at a time.
+- Messages were broadcast to all connected clients.
+
+### After
+- Each client connection is handled by a separate thread.
+- Clients are stored in:
+
+```
+ConcurrentHashMap<String, ClientHandler> clients
+```
+
+This allows:
+- Thread-safe access
+- Fast lookups
+- Duplicate name prevention
+- Automatic removal on disconnect
+
+---
+
+## 👤 Username Validation Logic
+
+When a client connects:
+
+1. Server sends:
+```
+ENTER_NAME
+```
+
+2. Client submits a name.
+
+3. Server checks:
+```
+if (clients.containsKey(name))
+```
+
+4. If duplicate:
+```
+NAME_EXISTS
+```
+
+5. If unique:
+```
+NAME_ACCEPTED
+```
+
+This guarantees no two clients share the same identity.
+
+---
+
+## 🔐 Privacy Improvement (Broadcast Removed)
+
+Originally, the server broadcasted messages like:
+
+```
+for (ClientHandler ch : clients.values())
+```
+
+This caused:
+- Messages from one client appearing in other client terminals
+- Privacy concerns
+
+### Updated Behavior
+Broadcast logic was removed.
+
+Now:
+- Messages sent by a client are visible **only on the server terminal**
+- Other clients do NOT receive those messages
+
+This converts the system into a **client-to-server communication model**, not a group chat.
+
+---
+
+## 🔌 Disconnection Handling
+
+If a client closes its terminal:
+- Server detects stream closure
+- Removes client from `clients` map
+- Updates active client list
+
+If server closes:
+- Client receives connection error
+- Client must reconnect to resume communication
+
+This ensures proper resource cleanup and stable multi-user behavior.
+
+---
+
+## 📊 Updated Communication Model
+
+```
+Multiple Clients
+        ↓
+   Thread per Client
+        ↓
+  Server (ConcurrentHashMap)
+        ↓
+   Server Console Logging
+```
+
+The server now behaves similarly to a centralized messaging server with controlled privacy and structured client management.
+
+---
