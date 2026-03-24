@@ -1,9 +1,3 @@
-Perfect timing — this will make your project look complete and professional 🔥
-
-Here’s a clean, ready-to-copy README.md tailored exactly to your final project (multi-client messenger system):
-
-⸻
-
 
 # 📡 Java Socket-Based Messenger System
 
